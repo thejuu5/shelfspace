@@ -142,6 +142,11 @@ router.put("/:id", requireAuth, async (req, res) => {
 
   try {
     const db = await connectDB();
+    // I noticed that clearing the return date on an old loan can reopen it,
+    // even when the same item has already been lent to someone else.
+    // Could we check for another outstanding loan before allowing this update?
+    // A partial unique index for loans with dateReturned: null would also help
+    // prevent duplicate loans when two requests arrive at the same time.
     const updated = await db.collection("loans").findOneAndUpdate(
       {
         _id: new ObjectId(req.params.id),
