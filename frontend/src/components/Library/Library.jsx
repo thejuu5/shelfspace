@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { STATUS_VALUES } from "../../constants/mediaOptions";
 import "./Library.css";
 
@@ -7,14 +7,34 @@ function Library() {
   const [items, setItems] = useState([]);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
-
-  function fetchItems() {
+  const navigate = useNavigate();
+  const [error, setError] = useState("");
+  async function fetchItems() {
     const params = new URLSearchParams();
     if (search) params.set("search", search);
     if (status) params.set("status", status);
-    fetch(`/api/media?${params.toString()}`)
-      .then((res) => res.json())
-      .then((data) => setItems(data));
+    // This request saves the response directly into items.
+    // If the session expires, the API returns an error object, and items.map()
+    // will fail when the page renders. Could we check the response status first,
+    // redirect to login for a 401, and show a message for other errors?
+    setError("");
+    try {
+      const res = await fetch(`/api/media?${params.toString()}`);
+  
+      if (res.status === 401) {
+        navigate("/login");
+        return;
+      }
+  
+      if (!res.ok) {
+        throw new Error("Could not load your library. Please try again.");
+      }
+  
+      const data = await res.json();
+      setItems(data);
+    } catch (err) {
+      setError(err.message);
+    }
   }
 
   useEffect(() => {
@@ -47,7 +67,7 @@ function Library() {
           + Add item
         </Link>
       </div>
-
+      {error && <p role="alert">{error}</p>}
       <div className="library-list">
         {items.map((item) => (
           <div className="library-row" key={item._id}>
