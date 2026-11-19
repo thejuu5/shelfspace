@@ -20,7 +20,10 @@ const emptyForm = {
   title: "",
   genre: "",
   releaseYear: "",
-  status: "Want-to-read",
+  // I noticed that the form starts with “Want-to-read,” but the backend only accepts “Wishlist,” “In Progress,” and “Finished.” 
+  // This could be confusing because a user might fill out everything correctly and still get an error if they leave the default status selected. 
+  // Maybe we can use STATUS_VALUES[0] as the default
+  status: "Want-to-read", 
   condition: "Good",
 };
 
